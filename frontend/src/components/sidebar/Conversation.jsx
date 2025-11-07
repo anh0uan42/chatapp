@@ -1,0 +1,23 @@
+
+
+
+export default function Conversation() {
+  return (
+    <>
+      <div className="flex gap-2 items-center hover:bg-sky-500 rounded p-2 py-1 cursor-pointer">
+        <div className="avatar online">
+          <div className="w-12 rounded-full">
+            <img alt="user avatar" src="data:image/jpeg;base64,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"/>
+          </div>
+        </div>
+        <div className="flex-col flex flex-1">
+          <div className="flex gap-3 justify-between">
+            <p className="font-bold text-gray-200">John Doe</p>
+            <span className="text-xl">🎃</span>
+          </div>
+        </div>
+      </div>
+      <div className="divider my-0 p-0 h-1" />
+    </>
+  )
+}
