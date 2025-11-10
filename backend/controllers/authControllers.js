@@ -5,11 +5,11 @@ const generateTokenAndSetCookie = require('../utils/generateToken')
 
 
 const signUp = async (req, res) => {
-    const { fullname, username, password, confirmPassword, gender, } = req.body
-    if (password !== confirmPassword) return res.status(400).json({ message: 'Password do not match'})
-    const user = await User.findOne( { username })
+    const { fullName, username, password, confirmPassword, gender, } = req.body
+    if (password !== confirmPassword) return res.status(400).json({ error: 'Password do not match'})
+    const user = await User.findOne({ username })
 
-    if (user) return res.status(400).json({ message: "Username is already exist"})
+    if (user) return res.status(400).json({ error: "Username is already exist"})
 
     const hashedPassword = bcrypt.hashSync(password, 10)
 
@@ -18,20 +18,30 @@ const signUp = async (req, res) => {
 
     try {
         const newUser = await User.create({
-            fullname,
+            fullName,
             username,
             password: hashedPassword,
             gender,
             profilePic: gender === 'male' ? boyPic : girlPic
         })
 
-        generateTokenAndSetCookie(newUser._id, res)
-        await newUser.save()
-
-       res.status(201).json(newUser) 
+        if(newUser) {
+            
+                    generateTokenAndSetCookie(newUser._id, res)
+                    await newUser.save()
+            
+                   res.status(201).json({
+                    _id: newUser._id,
+                    fullName: newUser.fullName,
+                    username: newUser.username,
+                    profilePic: newUser.profilePic
+                   })
+        } else {
+            res.status(400).json({ error: "Invalid data"})
+        }
     } catch (error) {
         console.log(`Could not create user`)
-        res.status(500).json({error: 'Internale Error'})
+        res.status(500).json({error: 'Internal Error'})
     }
 }
 
@@ -39,23 +49,22 @@ const logIn = async (req, res) => {
     try {
         const { username, password } = req.body
         const user = await User.findOne({ username })
-        if (!user) return res.status(404).json({ message: 'User not found '})
     
-        const correctPassword = await bcrypt.compare(password, user?.password)
+        const correctPassword = await bcrypt.compare(password, user?.password || '')
     
-        if (!correctPassword || !user) return res.status(400).json({ message: 'Username or password is incorrect' })
+        if (!correctPassword || !user) return res.status(400).json({ error: 'Username or password is incorrect' })
     
         generateTokenAndSetCookie(user._id, res)
     
         res.status(200).json({
             _id: user._id,
             username: user.username,
-            fullname: user.fullname,
+            fullName: user.fullName,
             profilePic: user.profilePic
         })
     } catch (error) {
         console.log('Login err', error)
-        res.status(500).json({ message: 'Internal Error'})
+        res.status(500).json({ error: 'Internal Error'})
     }
 }
 
@@ -65,7 +74,7 @@ const logout = (req, res) => {
         res.status(200).json({ message: 'You have logged out' })
     } catch (error) {
         console.log(`Logout error`, error)
-        res.status(500).json({ message: 'Internal Error'})
+        res.status(500).json({ error: 'Internal Error'})
     }
 }
 

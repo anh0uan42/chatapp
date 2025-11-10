@@ -1,34 +1,44 @@
 const Message = require('../model/Message')
 const Conversation = require('../model/Conversation')
-//const { getReceiverSocketId, io } = require()
+const { getReceiverSocketId, io } = require('../socket/socket')
 
 const sendMessage = async (req, res) => {
-    const { message } = req.body
-    const { id: recieverId } = req.params
-    const senderId = req.user._id
+    try {
+        const { message } = req.body
+        const { id: recieverId } = req.params
+        const senderId = req.user._id
 
-    let conversation = await Conversation.findOne({
-        participants: {$all: [senderId, recieverId]}
-    })
-
-    if (!conversation) {
-        conversation = await Conversation.create({
-            participants: [senderId, recieverId]
+        let conversation = await Conversation.findOne({
+            participants: {$all: [senderId, recieverId]}
         })
-    }
 
-    const newMessage = new Message({
-        senderId,
-        recieverId,
-        message
-    })
+        if (!conversation) {
+            conversation = await Conversation.create({
+                participants: [senderId, recieverId]
+            })
+        }
 
-    if (newMessage) {
-        conversation.messages.push(newMessage._id)
-    }
+        const newMessage = new Message({
+            senderId,
+            recieverId,
+            message
+        })
 
-    await Promise.all([conversation.save(), newMessage.save()])
+        if (newMessage) {
+            conversation.messages.push(newMessage._id)
+        }
+
+        await Promise.all([conversation.save(), newMessage.save()])
+
+        const receiverSocketId = getReceiverSocketId(recieverId)
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit('newMessage', newMessage)
+        }
     res.status(201).json(newMessage)
+    } catch (error) {
+        console.log('Controller error', error.message)
+        res.status(500).json({ error: 'Internal server error'})
+    }
 }
 
 const recieveMessage = async (req, res) => {

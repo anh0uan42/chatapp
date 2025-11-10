@@ -1,4 +1,4 @@
-const whitelist = ['https://www.youtube.com', 'http://localhost:3500', 'http://192.168.1.222']
+const whitelist = ['https://www.youtube.com', 'http://localhost:3500', 'http://192.168.1.222', 'http://localhost:5173']
 
 const corsOptions = {
     origin: (origin, callback) => {

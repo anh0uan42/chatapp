@@ -12,7 +12,7 @@ const getUsersForSidebar = async (req, res) => {
         res.status(200).json(otherUsers)
     } catch (error) {
         console.log(`Error getting other users ${error}`)
-        res.status(500).json({ message: 'Internal Server Error'})
+        res.status(500).json({ error: 'Internal Server Error'})
     }
 }
 
